@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FindFineU</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Pretendard','Noto Sans KR',sans-serif;
+            background: #FDF8F4;
+            color: #333;
+            min-height:100vh;
+            display:flex; justify-content:center;
+        }
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 32px;
+            background:#fff;
+            border-radius:18px;
+            box-shadow:0 4px 24px rgba(0,0,0,0.08);
+            display:grid;
+            grid-template-rows: auto 1fr auto;
+            grid-template-columns: 1fr;
+            row-gap:32px;
+            padding-bottom:32px;
+            position:relative;
+        }
+        .header {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding:24px 32px;
+            background:rgba(253,248,244,0.9);
+            border-bottom:1px solid #EEE;
+        }
+        .logo {
+            font-size:28px;
+            font-weight:bold;
+            display:flex;
+            align-items:center;
+            gap:12px;
+        }
+        .logo img {
+            width:38px;
+            height:38px;
+            border-radius:10px;
+            vertical-align:middle;
+            background:#fff;
+            box-shadow:0 2px 8px rgba(140,108,195,0.07);
+        }
+        .header-icons { display:flex; gap:24px; font-size:20px; }
+        .top-cards {
+            display:grid;
+            gap:20px;
+            padding:0 32px;
+        }
+        .joy-type-card, .daily-quote {
+          padding: 8px 24px;    /* ↖ 상하 8px, 좌우 24px */
+            border-radius:16px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.04);
+        }
+        .joy-type-card {
+            background: #D9F0E6; /* 기본 파스텔 */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            min-height: unset;
+            height: auto;
+            transition: background 0.2s;
+            box-sizing: border-box;
+        }
+        .daily-quote {
+            background: #E8E2F7; /* 기본 파스텔 */
+            text-align: center;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            min-height: unset;
+            height: auto;
+            transition: background 0.2s;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .activities-container {
+            padding: 0 32px;
+            margin-top: 0;      /* 추천 활동 제목과의 간격을 0으로 */
+            display: grid;
+            gap: 20px;
+            grid-auto-flow: column;
+            grid-auto-columns: minmax(180px,1fr);
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+        }
+        .activity-card {
+            background:#fff;
+            border-radius:14px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.04);
+            padding:20px;
+            flex-shrink:0;
+            scroll-snap-align: start;
+            display:flex; flex-direction:column; justify-content:space-between;
+        }
+        .activity-emoji { font-size:28px; margin-bottom:10px; }
+        .activity-name { font-weight:500; margin-bottom:6px; }
+        .activity-rating { font-size:13px; color:#666; margin-bottom:10px; }
+        .book-button {
+            background:#D9F0E6; border:none;
+            border-radius:16px; padding:6px 14px;
+            font-size:13px; cursor:pointer;
+        }
+        .daily-question {
+            margin:0 32px;
+            background:#FFF8E1;
+            padding:20px; border-radius:14px;
+            display:flex; align-items:center;
+            box-shadow:0 2px 8px rgba(0,0,0,0.04);
+            cursor:pointer;
+        }
+        .question-emoji { font-size:28px; margin-right:16px; }
+        .question-content { flex:1; }
+        .question-text { font-weight:500; margin-bottom:6px; }
+        .question-hint { font-size:13px; color:#666; }
+        .bottom-nav {
+            display:flex;
+            justify-content:space-around;
+            padding:18px 0 0;
+            background:transparent;
+        }
+        .nav-item { display:flex; flex-direction:column; align-items:center; font-size:13px; cursor:pointer; }
+        .nav-icon { font-size:22px; margin-bottom:4px; }
+        .nav-text { color:#666; }
+        .active .nav-text, .active .nav-icon { color:#8C6CC3; }
+        @media (min-width: 768px) {
+            .activities-container {
+                display:grid;
+                grid-template-columns: repeat(auto-fit, minmax(240px,1fr));
+                overflow:visible;
+            }
+            .bottom-nav { display:none; }
+            .container { padding-bottom:40px; }
+        }
+        @media (max-width: 700px) {
+            .container {
+                max-width: 98vw;
+                margin: 0;
+                border-radius: 0;
+                box-shadow: none;
+            }
+            .header, .top-cards, .activities-container, .daily-question {
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+            .joy-type-card {
+                font-size: 16px;
+            }
+            .joy-type-value {
+                font-size: 19px !important;
+            }
+            .daily-quote > div:first-child {
+                font-size: 19px !important;
+                font-weight: 600 !important;
+            }
+            .daily-quote > div:last-child {
+                font-size: 16px !important;
+            }
+        }
+        @media (min-width: 1024px) {
+            .joy-type-card {
+                font-size: 22px;
+                padding: 32px;
+            }
+            .joy-type-card > div > div:first-child {
+                font-size: 18px !important;
+            }
+            .joy-type-value {
+                font-size: 26px !important;
+            }
+            .daily-quote {
+                font-size: 22px;
+                padding: 32px;
+            }
+            .daily-quote > div:first-child {
+                font-size: 24px !important;
+                font-weight: 600 !important;
+            }
+            .daily-quote > div:last-child {
+                font-size: 18px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 헤더 -->
+    <div class="header">
+      <div class="logo" style="display:flex; align-items:center; gap:12px;">
+        <img src="pineu_logo.png" alt="파인유 로고" style="width:38px; height:38px; border-radius:10px; vertical-align:middle; background:#fff; box-shadow:0 2px 8px rgba(140,108,195,0.07);">
+        FindFineU
+      </div>
+      <div class="header-icons">
+        <div id="refreshBtn" style="cursor:pointer;">🔄</div>
+        <button id="calendarBtn" class="calendar-btn" style="display:none; margin-left:12px; background:#E8E2F7; border:none; border-radius:10px; padding:6px 18px; font-size:15px; font-weight:500; color:#8C6CC3; cursor:pointer;">
+          🗓️ 일정
+        </button>
+      </div>
+    </div>
+
+    <!-- 즐거움 유형 + 오늘 문구 -->
+    <div class="top-cards">
+      <div class="joy-type-card" id="joyTypeCard" style="cursor:pointer;">
+        <div>
+          <div style="font-size:15px;color:#666;">현재 즐거움 유형</div>
+          <div class="joy-type-value" id="joyTypeValue" style="font-weight:600;font-size:16px;"><span style="color:#8C6CC3;">-</span></div>
+        </div>
+        <div style="font-size:24px;">📈</div>
+      </div>
+      <div class="daily-quote" id="goToChat" style="cursor:pointer;">
+        <div style="font-size:18px;font-weight:500;">💡오늘, 나만의 즐거움을 찾아볼까요? 🌈</div>
+        <div style="font-size:13px;color:#666;">가볍게 질문에 답하며 여정을 시작해요! ✨</div>
+      </div>
+    </div>
+
+    <!-- 추천 활동 -->
+    <div style="padding:0 32px; margin-bottom:0;">
+      <h2 id="recommendTitle" style="font-size:18px;font-weight:600; margin-bottom:0;">추천 활동</h2>
+    </div>
+    <div class="activities-container" id="activitiesContainer">
+      <!-- JS로 동적으로 생성 -->
+    </div>
+
+    <!-- 오늘의 질문 -->
+    <div class="daily-question" onclick="location.href='chat-ui.html'">
+      <div class="question-emoji">💬</div>
+      <div class="question-content">
+        <div class="question-text">오늘 특별히 기억에 남는 일이 있었나요?</div>
+        <div class="question-hint">→ 클릭 시 채팅으로 이동</div>
+      </div>
+    </div>
+
+    <!-- (모바일) 하단 내비 -->
+    <div class="bottom-nav">
+      <div class="nav-item active"><div class="nav-icon">🏠</div><div class="nav-text">홈</div></div>
+      <div class="nav-item" id="bottomCalendarBtn"><div class="nav-icon">🗓️</div><div class="nav-text">일정</div></div>
+      <div class="nav-item" id="bottomChatBtn"><div class="nav-icon">💬</div><div class="nav-text">채팅</div></div>
+      <div class="nav-item"><div class="nav-icon">👤</div><div class="nav-text">프로필</div></div>
+    </div>
+  </div>
+
+  <!-- 팝업 레이어 추가 (body 안, container 바깥에 두세요) -->
+<div id="typeDescModal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:10000; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:18px; box-shadow:0 4px 24px rgba(0,0,0,0.12); padding:32px 24px; max-width:90vw; width:360px; text-align:center; position:relative; display:flex; flex-direction:column; max-height:80vh;">
+    <div id="typeDescTitle" style="font-size:22px; font-weight:700; color:#8C6CC3; margin-bottom:12px; flex-shrink:0;"></div>
+    <div id="typeDescBody" style="font-size:16px; color:#333; margin-bottom:24px; overflow-y:auto; text-align:left; line-height:1.7; max-height:48vh; padding-right:4px;"></div>
+    <button id="typeDescClose" style="background:#8C6CC3; color:#fff; border:none; border-radius:12px; padding:10px 0; font-size:16px; cursor:pointer; width:100%; font-weight:600;">닫기</button>
+  </div>
+</div>
+
+  <script>
+  // 유형별 추천 활동 데이터
+  const activityMap = {
+    "탐험형": [
+      { emoji: "🧭", name: "미지의 골목 탐험 워킹 투어" },
+      { emoji: "🚆", name: "당일치기 기차 여행" },
+      { emoji: "🧪", name: "실험적인 신메뉴 or 이색 카페 탐방" }
+    ],
+    "창조형": [
+      { emoji: "🖌️", name: "유화나 수채화 원데이 클래스" },
+      { emoji: "✂️", name: "업사이클링 공방 체험" },
+      { emoji: "🎬", name: "단편 영상 만들기 워크숍" }
+    ],
+    "즉흥형": [
+      { emoji: "🎤", name: "오픈 마이크 참여 (즉석 노래/낭독)" },
+      { emoji: "🎭", name: "즉흥 연극 클래스" },
+      { emoji: "🧳", name: "랜덤 여행/데이트 미션 앱 사용" }
+    ],
+    "감각형": [
+      { emoji: "🌸", name: "향기 워크숍 (디퓨저/향수 만들기)" },
+      { emoji: "🧖‍♀️", name: "사운드 배스 or 요가 니드라" },
+      { emoji: "🎧", name: "고품질 헤드폰으로 ASMR 감상회" }
+    ],
+    "리듬형": [
+      { emoji: "🥁", name: "젬베 or 라틴 드럼 클래스" },
+      { emoji: "🕺", name: "리듬댄스 or 줌바 댄스 체험" },
+      { emoji: "🎧", name: "디제잉 or 믹싱 체험 프로그램" }
+    ],
+    "도전형": [
+      { emoji: "🧗‍♂️", name: "실내 클라이밍 + 루트 도전" },
+      { emoji: "🥋", name: "무술 or 자기방어 클래스" },
+      { emoji: "🧠", name: "추리 퀘스트 기반 방탈출" }
+    ],
+    "몰입형": [
+      { emoji: "🧘", name: "심화 명상 리트릿" },
+      { emoji: "🖋️", name: "글쓰기 마라톤 or 블로깅 챌린지" },
+      { emoji: "🧩", name: "수공예 퍼즐 제작 체험" }
+    ],
+    "유능성": [
+      { emoji: "🎯", name: "타겟 스포츠 (양궁, 다트)" },
+      { emoji: "🧪", name: "수치화 가능한 자기계발 (코딩/통계 해커톤)" },
+      { emoji: "📝", name: "자격증 or 인증 과정 체험" }
+    ],
+    "성장형": [
+      { emoji: "🎓", name: "인문학 or 철학 소모임" },
+      { emoji: "📈", name: "장기 목표 계획 수립 워크숍" },
+      { emoji: "📖", name: "자가독서회 + 회고 노트 작성" }
+    ],
+    "돌봄형": [
+      { emoji: "🐶", name: "유기견 산책 자원봉사" },
+      { emoji: "🧶", name: "뜨개질 클래스" },
+      { emoji: "🧑‍🍳", name: "아동 요리교실 보조 봉사" }
+    ],
+    "공유형": [
+      { emoji: "🍱", name: "도시락 나눔 캠페인 참여" },
+      { emoji: "📢", name: "책 나눔 플리마켓" },
+      { emoji: "🎙️", name: "친구와 팟캐스트 시작해보기" }
+    ],
+    "공감형": [
+      { emoji: "🎬", name: "감정 기반 영화 리뷰 나눔" },
+      { emoji: "💌", name: "감정 글쓰기 모임" },
+      { emoji: "🎭", name: "연극 관람 후 감상 공유 세션" }
+    ],
+    "관계성": [
+      { emoji: "👨‍👩‍👧‍👦", name: "가족 or 친구와 보드게임 밤" },
+      { emoji: "💃", name: "커플/듀오 댄스 클래스" },
+      { emoji: "🧑‍🤝‍🧑", name: "관계 회복 워크숍" }
+    ],
+    "연결형": [
+      { emoji: "🍻", name: "소셜 살롱 or 네트워킹 모임" },
+      { emoji: "🫶", name: "친구 생일 기획하기" },
+      { emoji: "📚", name: "북토크 or 북클럽 참여" }
+    ],
+    "사회형": [
+      { emoji: "🎈", name: "지역 축제 참여 or 서포터즈" },
+      { emoji: "🎤", name: "노래방 모임 or 댄스파티" },
+      { emoji: "🎪", name: "커뮤니티 마켓 or 플리마켓 출전" }
+    ]
+  };
+
+  // 유형별 설명 맵
+const typeDescriptionMap ={
+  "탐험형": `
+🧭 항상 지도를 펼치고 미지의 길을 찾아 헤매는 것만으로 설렘을 느껴요.
+🚆 새벽 기차를 타고 계획에 없던 작은 마을에 내렸을 때, 골목마다 숨어 있는 맛집과 풍경을 발견할 때 전율이 오죠.
+🛠 업무나 공부에서도 익숙한 방법 대신 전혀 새로운 도구나 접근법을 시도해 보고, 그 과정 자체에서 재미를 찾습니다.
+🌟 “뭘 해도 좋으니 일단 가보자!”라는 마음으로 사소한 일상에서도 새로운 경험 코스를 짜는 삶을 즐깁니다.
+  `,
+  "창조형": `
+🎨 머릿속에 떠오른 아이디어가 현실로 구현될 때 짜릿함을 느껴요.
+✏️ 종이 위에 끄적이던 스케치를 실제 일러스트나 DIY 공예품으로 만들었을 때, 손끝에서 탄생하는 결과물이 나를 닮았다는 자부심이 올라옵니다.
+🧩 문제를 바라볼 때 틀에 박힌 답이 아니라 “이렇게도 해볼까?” 하며 창의적인 솔루션을 고민하는 자체가 즐겁죠.
+💡 실패해도 “다음엔 더 기발하게!”라는 태도로, 항상 자신만의 색깔을 더해가는 여정을 즐깁니다.
+  `,
+  "즉흥형": `
+⚡ 시간표보다는 순간의 감각에 따라 움직일 때 진짜 재미를 느껴요.
+🚗 점심 먹고 나서 친구가 “바다 보러 갈래?” 하면 곧장 차를 몰고 해질녘 파도 소리를 듣는 그 즉흥적 선택이 소중하죠.
+🌀 계획이 빡빡하면 숨이 막히는데, 백지 상태에서 뭔가가 튀어나오는 순간이 가장 짜릿합니다.
+🌅 “내일 일정은 내일 정해도 돼”라는 마음으로, 예상치 못한 재미를 찾아 헤매는 삶을 즐깁니다.
+  `,
+  "감각형": `
+👃 갓 구운 빵 냄새에 이끌려 새벽 시장에서 한 조각을 베어 물었을 때, 따끈한 속살이 입 안 가득 퍼지는 순간이 루틴을 빛나게 해 줍니다.
+👁 전시회에서 강렬한 색감의 회화 앞에 서거나, 촉감이 독특한 패브릭을 손으로 더듬을 때 ‘지금 내가 살아 있구나’ 하고 만끽하죠.
+🤲 오감이 살아 있는 여행 코스를 짜고, ‘이 냄새·이 소리·이 맛’을 하나하나 기록하며 일상을 풍요롭게 채워 나갑니다.
+🌍 자연의 소리, 향기, 촉감을 최대한 느끼며 감각적 경험을 즐깁니다.
+  `,
+  "리듬형": `
+🎶 리듬이 있는 모든 활동에서 몰입과 안정감을 함께 느껴요.
+🏃 아침마다 음악을 켜고 러닝을 시작하면, 4박자 비트에 맞춰 발걸음이 춤추는 듯한 쾌감이 밀려와요.
+🤸 업무 중에도 일정한 템포로 손을 움직이거나 짧은 스트레칭 루틴을 반복하면서 집중력을 유지합니다.
+🥁 ‘어떤 리듬으로 하루를 꾸려갈까?’를 고민하며, 작은 루틴 하나에도 나만의 비트를 넣어 살아가는 걸 즐깁니다.
+  `,
+  "도전형": `
+🏅 ‘해본 적 없는’ 영역에 뛰어들어 한계를 시험할 때 살아 있음을 느껴요.
+🏃‍♂️ 마라톤 완주나 새로운 프로그래밍 언어 배우기처럼, 목표를 설정하고 하나씩 성취해 나가는 과정이 바로 보상입니다.
+💪 도전 중간에 어려움이 찾아와도 “이걸 넘으면 더 강해지겠지”라는 마음으로 다시 일어서며, 실패 자체를 성장의 씨앗으로 삼습니다.
+🏆 스스로 정한 높은 벽을 넘어설 때마다 “내가 해냈다!”는 희열이 다음 도전을 부르죠.
+  `,
+  "몰입형": `
+🌊 시간 가는 줄 모르는 ‘플로우(flow)’ 상태에서 깊은 만족을 느껴요.
+📚 책을 읽다가, 코드를 짜다가, 악기 연주에 몰두하다 보면 주변이 모두 사라지고 ‘나만의 세계’에 빠져들게 됩니다.
+🎹 머릿속에 문제가 떠올라도 손을 멈출 수 없는 그 순간이 가장 행복해요.
+🎯 작업 후에는 땀방울처럼 알찬 성취감이 몸에 남습니다.
+  `,
+  "유능성": `
+💪 내 기술·지식이 실제 효과를 만들어낼 때 자존감이 확 올라가요.
+🛠 처음엔 버벅거리던 프로젝트라도, 차근차근 문제를 해결해 나가며 “내가 이만큼 성장했구나”를 확인할 때 뿌듯합니다.
+🌟 동료나 친구로부터 “덕분에 일이 쉽게 풀렸다”라는 말을 들으면, 내가 세상에 기여하고 있다는 실감이 듭니다.
+🎤 타인 앞에 서서 내 성취나 노하우를 공유할 때, ‘나도 해낼 수 있다’는 자신감을 전달하는 걸 즐깁니다.
+  `,
+  "성장형": `
+🌱 공부·연습·반복을 통해 조금씩 나아지는 과정을 사랑해요.
+📝 매일 아침 10분만이라도 새로운 언어 단어나 악보를 외우고, 그 작은 변화들을 모아 ‘나의 성장 곡선’을 그려보는 걸 즐깁니다.
+🔄 실패했을 때도 좌절보다는 “이번엔 무엇을 배울까?”라는 질문을 던지며, 피드백을 받아 더 나은 버전의 나로 업그레이드합니다.
+🚀 목표치가 끝없이 높아져도 포기하지 않고, 꾸준한 연습이 쌓여갈수록 스스로에게 자비롭고 부드러운 태도를 갖게 됩니다.
+  `,
+  "돌봄형": `
+🤗 다른 사람의 작은 변화에도 민감하게 반응하며 기쁨을 나눠요.
+☕ 친구가 힘들다고 했을 때 따뜻한 차 한 잔과 위로의 말로 응원하다 보면, 내가 누군가에게 꼭 필요한 사람이 된 기분이 듭니다.
+🎉 가족 이벤트를 준비하며 모두의 얼굴에 미소가 퍼질 때, 돌봄의 가치가 내 인생에서 가장 큰 보상이 됩니다.
+🤝 돌봄을 베풀되 경계선을 지켜 건강한 관계를 유지하는 법을 배워가며, 서로에게 긍정의 에너지를 주고받습니다.
+  `,
+  "공유형": `
+🤝 내가 가진 정보·경험을 나누고, 함께 무언가를 만들어갈 때 에너지가 샘솟아요.
+💡 동료에게 새로 알게 된 생산성 팁을 전해 주고, 그 피드백을 다시 받으며 아이디어가 발전해가는 과정을 즐깁니다.
+🎤 취미 스터디 모임을 주최해 서로의 결과물을 감상하고 토론하다 보면, 단순한 개인 경험이 공동의 성과로 확장됩니다.
+🌐 “나 혼자보단 우리가 더 크고 재미있는 일을 할 수 있다”는 믿음을 키워 나갑니다.
+  `,
+  "공감형": `
+🫂 상대방의 감정선을 고스란히 느끼며 진정한 연결을 경험해요.
+👂 누군가의 이야기를 경청할 때, 말하지 않아도 그 사람의 눈빛·톤·제스처만으로도 속마음을 읽고 반응을 맞출 때 큰 보람을 느껴요.
+🤲 슬픔에 잠긴 친구 옆에서 말없이 손을 잡아 주기만 해도, 서로의 마음이 한층 가깝게 이어집니다.
+❤️ 공감은 때로는 ‘해결’보다 더 큰 위로가 되기에, 진심으로 상대를 이해하려는 태도를 삶의 지침으로 삼습니다.
+  `,
+  "관계성": `
+🧑‍🤝‍🧑 안정적이고 예측 가능한 관계망 속에서 소속감을 느껴요.
+🔒 어릴 적 친구들과의 연례 MT, 동호회 정기 모임처럼 ‘늘 그 자리에서 만날 수 있다’는 믿음이 큰 안도가 됩니다.
+🤗 한 번 맺은 인연을 소홀히 하지 않고, 작은 약속이나 연락도 놓치지 않으려 애쓰며 신뢰의 기반을 다집니다.
+🏠 포근한 울타리 안에서 서로를 지지하며, 삶의 기복을 함께 견딜 수 있는 든든한 버팀목을 만들어 갑니다.
+  `,
+  "연결형": `
+🔗 넓은 인간관계망 속에서 새로운 기회를 포착하고 싶어 해요.
+💬 SNS나 오프라인 모임을 통해 모르는 사람과도 대화를 시도하며, 그 속에서 뜻밖의 프로젝트 파트너나 좋은 친구를 만날 때 큰 희열을 느낍니다.
+📇 “어떤 사람과 연결될까?”를 고민하며, 명함 한 장도 소중히 보관하고 후에 연락을 이어갈 방법을 찾는 세심함이 특징이에요.
+🌐 다양한 분야의 사람들과 얽히며, 스스로도 새로운 영역으로 확장해 가는 삶을 즐깁니다.
+  `,
+  "사회형": `
+🎉 크고 작은 모임의 중심에서 활력을 얻는 ‘파티 피플’이에요.
+🍻 회식 자리에서 분위기를 띄우는 역할을 맡거나, 행사장 무대 뒤편에서 스태프로 활동하며 사람들의 웃음소리를 들으면 힘이 납니다.
+🤹‍♀️ ‘우리’가 함께 만든 장면이 중요하다고 여기며, 다수가 모이는 장소에서 주도적으로 참여하고 즐기는 태도를 가집니다.
+🎬 행사 전후 기획·준비 과정을 즐기며, 끝나고 나서도 “다음엔 더 멋지게 해 보자”며 팀워크를 다집니다.
+  `
+};
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const joyTypeValue = document.getElementById('joyTypeValue');
+  let mainType = "-";
+  try {
+    const saved = JSON.parse(localStorage.getItem('selfAwarenessSurvey'));
+    mainType = saved?.mainType 
+             || saved?.userInfo?.mainType 
+             || saved?.joyType 
+             || saved?.type 
+             || saved?.유형 
+             || "-";
+    console.log('mainType:', mainType); // 콘솔 확인
+    if (mainType && typeof mainType === "string" && mainType !== "-") {
+      joyTypeValue.innerHTML = `<span style="color:#8C6CC3;">${mainType}</span>`;
+    } else {
+      joyTypeValue.innerHTML = `<span style="color:#8C6CC3;">-</span>`;
+    }
+  } catch(e) {
+    joyTypeValue.innerHTML = `<span style="color:#8C6CC3;">-</span>`;
+  }
+
+    // 추천 활동 동적 생성
+    const actCon = document.getElementById('activitiesContainer');
+    let typeKey = mainType;
+    // 여러 유형이 있을 경우 첫 번째만 사용 (공백 포함 모두 제거)
+    if (typeof typeKey === "string" && typeKey.includes("+")) {
+      typeKey = typeKey.split("+")[0].trim();
+    }
+    typeKey = (typeKey || "").replace(/\s/g, ""); // 모든 공백 제거 (ex: "연결형 ")
+    // activityMap 키도 공백 없는 버전으로 체크
+    let foundKey = Object.keys(activityMap).find(k => k.replace(/\s/g, "") === typeKey);
+    if (foundKey && activityMap[foundKey]) {
+      actCon.innerHTML = activityMap[foundKey].map(act => `
+        <div class="activity-card">
+          <div>
+            <div class="activity-emoji">${act.emoji}</div>
+            <div class="activity-name">${act.name}</div>
+          </div>
+          <button class="book-button">도전해볼래요!</button>
+        </div>
+      `).join('');
+    } else {
+      // 디폴트 추천: 독서, 걷기/러닝, 명상
+      const defaultActs = [
+        { emoji: "📖", name: "독서와 북노트 쓰기" },
+        { emoji: "🚶‍♂️", name: "가벼운 걷기나 러닝" },
+        { emoji: "🧘", name: "명상하기" }
+      ];
+      actCon.innerHTML = defaultActs.map(act => `
+        <div class="activity-card">
+          <div>
+            <div class="activity-emoji">${act.emoji}</div>
+            <div class="activity-name">${act.name}</div>
+          </div>
+          <button class="book-button">도전해볼래요!</button>
+        </div>
+      `).join('');
+    }
+    // 사용자 닉네임 가져오기
+    let nickname = "-";
+    try {
+      const saved = JSON.parse(localStorage.getItem('selfAwarenessSurvey'));
+      nickname = saved?.userInfo?.name || "-";
+      console.log('닉네임:', nickname); // 콘솔 확인
+    } catch(e) {
+      console.error('닉네임 로드 실패:', e);
+    }
+    const titleEl = document.getElementById('recommendTitle');
+    if (titleEl && nickname && nickname !== "-") {
+      titleEl.textContent = `${nickname}님의 추천 활동`;
+    }
+
+    // 활동 버튼 클릭 시 안내
+    setTimeout(() => {
+      document.querySelectorAll('.book-button').forEach(btn => {
+        btn.onclick = function() {
+          alert('아직 개발 예정입니다.');
+        };
+      });
+    }, 10);
+
+    // 기존 클릭 이동 기능
+    document.querySelector('.daily-question').onclick = function() {
+      location.href = 'chat-ui.html';
+    };
+    // 아래 코드에서 'bottomChatBtn' 앞에 #이 빠져있어서 동작하지 않습니다.
+    // 수정: document.getElementById('bottomChatBtn')
+    document.getElementById('bottomChatBtn').onclick = function() {
+      location.href = 'chat-ui.html';
+    };
+    document.getElementById('joyTypeCard').onclick = function() {
+      // mainType에서 첫 번째 유형만 추출
+      let typeKey = mainType;
+      if (typeof typeKey === "string" && typeKey.includes("+")) {
+        typeKey = typeKey.split("+")[0].trim();
+      }
+      typeKey = (typeKey || "").replace(/\s/g, "");
+      let foundKey = Object.keys(typeDescriptionMap).find(k => k.replace(/\s/g, "") === typeKey);
+      let desc = typeDescriptionMap[foundKey] || "아직 설명이 준비되지 않았어요.";
+      // 팝업에 내용 채우기
+      document.getElementById('typeDescTitle').innerText = foundKey || mainType;
+      document.getElementById('typeDescBody').innerText = desc;
+      document.getElementById('typeDescModal').style.display = "flex";
+    };
+    document.getElementById('goToChat').onclick = function() {
+      location.href = 'chat-ui.html';
+    };
+    // 새로고침 버튼
+    document.getElementById('refreshBtn').onclick = function() {
+      location.reload();
+    };
+    // 닫기 버튼
+    document.getElementById('typeDescClose').onclick = function() {
+      document.getElementById('typeDescModal').style.display = "none";
+    };
+    // 배경 클릭 시 닫기
+    document.getElementById('typeDescModal').onclick = function(e) {
+      if (e.target === this) this.style.display = "none";
+    };
+    // PC버전 일정 버튼 클릭 시 calender.html로 이동
+    document.getElementById('calendarBtn').onclick = function() {
+      location.href = 'calender.html';
+    };
+    // 하단 내비 '일정' 버튼 클릭 시 calender.html로 이동
+    document.getElementById('bottomCalendarBtn').onclick = function() {
+      location.href = 'calender.html';
+    };
+    // 하단 내비 '프로필' 버튼 클릭 시 profile.html로 이동
+    document.querySelectorAll('.bottom-nav .nav-item').forEach(function(item) {
+      const text = item.querySelector('.nav-text')?.textContent?.trim();
+      if (text === '프로필') {
+        item.onclick = function() {
+          location.href = 'profile.html';
+        };
+      }
+    });
+  });
+</script>
+<style>
+    @media (min-width: 768px) {
+      .calendar-btn {
+        display: inline-block !important;
+      }
+    }
+    @media (max-width: 767px) {
+      .calendar-btn {
+        display: none !important;
+      }
+    }
+  </style>
+</body>
+</html>

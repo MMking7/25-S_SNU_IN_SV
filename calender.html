@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>추천 활동 캘린더</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.6/dist/web/static/pretendard.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background: #FDF8F4;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #8C6CC3;
+            font-size: 2rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .view-toggle {
+            display: flex;
+            background: white;
+            border-radius: 12px;
+            padding: 4px;
+            box-shadow: 0 2px 10px rgba(140, 108, 195, 0.1);
+        }
+
+        .view-toggle button {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .view-toggle button.active {
+            background: #8C6CC3;
+            color: white;
+        }
+
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 8px 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(140, 108, 195, 0.1);
+        }
+
+        .nav-btn {
+            background: #E8E2F7;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: #8C6CC3;
+            color: white;
+        }
+
+        .month-year {
+            font-weight: 600;
+            color: #8C6CC3;
+            min-width: 140px;
+            text-align: center;
+        }
+
+        .date-picker {
+            background: white;
+            border: 2px solid #E8E2F7;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+
+        .today-btn {
+            background: #66C3A7;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(102, 195, 167, 0.2);
+        }
+
+        .today-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 195, 167, 0.3);
+        }
+
+        .calendar {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(140, 108, 195, 0.1);
+            overflow: hidden;
+        }
+
+        .calendar-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            background: #8C6CC3;
+            color: white;
+        }
+
+        .day-name {
+            padding: 15px 5px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .calendar-body {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: #f0f0f0;
+        }
+
+        .day-cell {
+            background: white;
+            min-height: 120px;
+            padding: 8px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .day-cell:hover {
+            background: #fafafa;
+            transform: scale(1.02);
+        }
+
+        .day-cell.other-month {
+            background: #f8f8f8;
+            color: #ccc;
+        }
+
+        .day-cell.today {
+            background: linear-gradient(135deg, #8C6CC3, #66C3A7);
+            color: white;
+        }
+
+        .day-cell.today .day-number {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .day-number {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .activity-item {
+            background: linear-gradient(135deg, #E8E2F7, #D9F0E6);
+            border-radius: 8px;
+            padding: 4px 6px;
+            margin: 2px 0;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 3px solid #8C6CC3;
+            /* 추천 활동이 가로로 나오도록 강제 */
+            white-space: normal !important;
+            writing-mode: horizontal-tb !important;
+            word-break: keep-all;
+            flex-direction: row !important;
+            display: flex;
+            align-items: center;
+        }
+
+        .activity-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(140, 108, 195, 0.2);
+        }
+
+        .activity-emoji {
+            font-size: 0.8rem;
+        }
+
+        .activity-rating {
+            color: #f39c12;
+            font-size: 0.7rem;
+        }
+
+        /* 주간 보기 스타일 */
+        .week-view .calendar-body {
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            padding: 20px;
+            background: transparent;
+        }
+
+        .week-view .day-cell {
+            min-height: 200px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(140, 108, 195, 0.1);
+        }
+
+        /* 모달 스타일 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .modal h3 {
+            color: #8C6CC3;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .modal-activity {
+            background: linear-gradient(135deg, #E8E2F7, #D9F0E6);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #8C6CC3;
+        }
+
+        .modal-activity h4 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .modal-activity p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .nav-controls {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .day-cell {
+                min-height: 80px;
+                padding: 4px;
+            }
+
+            .activity-item {
+                font-size: 0.7rem;
+                padding: 2px 4px;
+            }
+
+            .day-name {
+                padding: 10px 2px;
+                font-size: 0.8rem;
+            }
+
+            .calendar-header {
+                font-size: 0.8rem;
+            }
+
+            .modal-content {
+                padding: 20px;
+                margin: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .day-cell {
+                min-height: 60px;
+                padding: 2px;
+            }
+
+            .activity-item .activity-rating {
+                display: none !important;
+            }
+            .activity-item {
+                font-size: 0.65rem;
+                flex-wrap: nowrap;
+                white-space: nowrap;
+            }
+
+            .activity-item {
+                font-size: 0.65rem;
+                margin: 1px 0;
+            }
+
+            .day-number {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌟 추천 활동 캘린더</h1>
+            <p>매일 새로운 도전과 즐거움을 발견해보세요!</p>
+        </div>
+
+        <div class="controls">
+            <div class="nav-controls">
+                <button class="nav-btn" id="homeBtn">🏠 홈</button>
+                <button class="nav-btn" onclick="previousMonth()">◀</button>
+                <span class="month-year" id="monthYear"></span>
+                <button class="nav-btn" onclick="nextMonth()">▶</button>
+                <input type="date" class="date-picker" id="datePicker" onchange="goToDate()">
+            </div>
+
+            <button class="today-btn" onclick="goToToday()">📍 오늘로 이동</button>
+        </div>
+
+        <div class="calendar" id="calendar">
+            <div class="calendar-header">
+                <div class="day-name">일</div>
+                <div class="day-name">월</div>
+                <div class="day-name">화</div>
+                <div class="day-name">수</div>
+                <div class="day-name">목</div>
+                <div class="day-name">금</div>
+                <div class="day-name">토</div>
+            </div>
+            <div class="calendar-body" id="calendarBody"></div>
+        </div>
+    </div>
+
+    <!-- 모달 -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">×</button>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // 전역 변수
+        let currentDate = new Date();
+        let currentView = 'month';
+        let activities = {};
+
+        // 활동 데이터
+        const activityTypes = {
+            mindful: {
+                name: '감각형 몰입',
+                activities: [
+                    { name: '명상하기', emoji: '🧘', description: '10분간 조용한 명상으로 마음을 정리해보세요.', rating: 4.8 },
+                    { name: '향초 켜기', emoji: '🕯️', description: '좋아하는 향의 캔들을 켜고 힐링 타임을 가져보세요.', rating: 4.5 },
+                    { name: '차 마시기', emoji: '🍵', description: '천천히 차를 우려내며 현재 순간에 집중해보세요.', rating: 4.6 },
+                    { name: '일기 쓰기', emoji: '📔', description: '하루를 돌아보며 감정을 글로 표현해보세요.', rating: 4.7 }
+                ]
+            },
+            challenge: {
+                name: '도전형 활동',
+                activities: [
+                    { name: '새 요리법', emoji: '👩‍🍳', description: '처음 만들어보는 요리에 도전해보세요!', rating: 4.3 },
+                    { name: '운동 챌린지', emoji: '🏋️', description: '새로운 운동을 15분간 시도해보세요.', rating: 4.4 },
+                    { name: '언어 학습', emoji: '📚', description: '새로운 언어의 단어 10개를 배워보세요.', rating: 4.2 },
+                    { name: '악기 연습', emoji: '🎸', description: '악기 연주에 30분간 도전해보세요.', rating: 4.5 }
+                ]
+            },
+            creative: {
+                name: '창작형 활동',
+                activities: [
+                    { name: '그림 그리기', emoji: '🎨', description: '자유롭게 그림을 그려보세요. 실력은 중요하지 않아요!', rating: 4.6 },
+                    { name: '시 쓰기', emoji: '✍️', description: '오늘의 감정을 시로 표현해보세요.', rating: 4.4 },
+                    { name: '사진 찍기', emoji: '📸', description: '일상 속 아름다운 순간을 카메라에 담아보세요.', rating: 4.5 },
+                    { name: '만들기', emoji: '🔨', description: '손으로 무언가를 만들어보는 시간을 가져보세요.', rating: 4.3 }
+                ]
+            },
+            social: {
+                name: '소통형 활동',
+                activities: [
+                    { name: '친구 연락', emoji: '📞', description: '오랫동안 연락하지 못한 친구에게 안부를 물어보세요.', rating: 4.7 },
+                    { name: '가족 시간', emoji: '👨‍👩‍👧‍👦', description: '가족과 함께 보내는 특별한 시간을 만들어보세요.', rating: 4.8 },
+                    { name: '편지 쓰기', emoji: '💌', description: '소중한 사람에게 진심을 담은 편지를 써보세요.', rating: 4.6 },
+                    { name: '봉사활동', emoji: '🤝', description: '작은 도움이라도 누군가에게 베풀어보세요.', rating: 4.9 }
+                ]
+            },
+            nature: {
+                name: '자연형 활동',
+                activities: [
+                    { name: '산책하기', emoji: '🚶', description: '근처 공원이나 자연 속에서 여유로운 산책을 즐겨보세요.', rating: 4.7 },
+                    { name: '식물 기르기', emoji: '🌱', description: '새로운 식물을 키우거나 기존 식물을 돌봐보세요.', rating: 4.4 },
+                    { name: '일출 보기', emoji: '🌅', description: '이른 아침 일출을 보며 하루를 시작해보세요.', rating: 4.8 },
+                    { name: '별 보기', emoji: '⭐', description: '밤하늘의 별을 보며 우주의 신비를 느껴보세요.', rating: 4.6 }
+                ]
+            },
+            // 아래부터 추가
+            탐험형: {
+                name: '탐험형', 
+                activities: [
+                { name: '골목 탐험', emoji: '🧭', description: '미지의 골목을 걸으며 일상의 모험을 즐겨보세요. 새로운 풍경과 숨은 맛집을 발견할 수 있어요. (평점 4.7)', rating: 4.7 },
+                { name: '기차 여행', emoji: '🚆', description: '가까운 도시로 즉흥 기차 여행을 떠나보세요. 창밖 풍경과 낯선 거리의 매력이 기다리고 있어요. (평점 4.6)', rating: 4.6 },
+                { name: '카페 탐방', emoji: '🧪', description: '이색 카페에서 실험적인 신메뉴를 맛보며 감각을 깨워보세요. SNS 핫플레이스도 많아요! (평점 4.5)', rating: 4.5 }
+                ]
+            },
+            창조형: {
+                name: '창조형',
+                activities: [
+                { name: '그림 클래스', emoji: '🖌️', description: '유화나 수채화 원데이 클래스에 참여해 나만의 작품을 완성해보세요. 창의력이 샘솟습니다. (평점 4.8)', rating: 4.8 },
+                { name: '업사이클링', emoji: '✂️', description: '업사이클링 공방에서 버려지는 자원을 활용해 특별한 물건을 만들어보세요. 환경도 지키고 창작의 기쁨도 느낄 수 있어요. (평점 4.6)', rating: 4.6 },
+                { name: '영상 워크숍', emoji: '🎬', description: '단편 영상 제작 워크숍에 참가해 기획부터 편집까지 경험해보세요. 나만의 스토리를 담아보세요. (평점 4.7)', rating: 4.7 }
+                ]
+            },
+            즉흥형: {
+                name: '즉흥형',
+                activities: [
+                { name: '오픈 마이크', emoji: '🎤', description: '즉석 노래나 낭독에 도전하며 스릴 넘치는 무대를 경험해보세요. 자기 표현의 즐거움을 맛볼 수 있어요. (평점 4.5)', rating: 4.5 },
+                { name: '즉흥 연극', emoji: '🎭', description: '즉흥 연극 클래스에서 예측 불가능한 상황을 즐기며 순발력을 길러보세요. 새로운 재미가 가득합니다. (평점 4.6)', rating: 4.6 },
+                { name: '랜덤 미션', emoji: '🧳', description: '랜덤 여행·데이트 미션 앱으로 매번 새로운 미션을 수행해보세요. 어떤 모험이 기다릴지 기대감을 느껴보세요. (평점 4.4)', rating: 4.4 }
+                ]
+            },
+            감각형: {
+                name: '감각형',
+                activities: [
+                { name: '향기 워크숍', emoji: '🌸', description: '디퓨저나 향수 만들기 클래스에서 나만의 향을 디자인해보세요. 향기로 특별한 추억을 남길 수 있어요. (평점 4.7)', rating: 4.7 },
+                { name: '사운드 배스', emoji: '🧖‍♀️', description: '소리와 함께 요가 니드라로 깊은 이완을 느껴보세요. 몸과 마음이 편안해집니다. (평점 4.6)', rating: 4.6 },
+                { name: 'ASMR 감상', emoji: '🎧', description: '고품질 헤드폰으로 다양한 ASMR 콘텐츠를 감상하며 색다른 감각을 경험해보세요. (평점 4.5)', rating: 4.5 }
+                ]
+            },
+            리듬형: {
+                name: '리듬형',
+                activities: [
+                { name: '드럼 클래스', emoji: '🥁', description: '젬베나 라틴 드럼 클래스에서 리듬을 타며 스트레스를 날려보세요. 몸이 자연스럽게 움직입니다. (평점 4.6)', rating: 4.6 },
+                { name: '줌바 댄스', emoji: '🕺', description: '신나는 줌바 댄스 클래스에서 음악에 몸을 맡기고 에너지를 충전해보세요. (평점 4.7)', rating: 4.7 },
+                { name: '디제잉 체험', emoji: '🎧', description: '디제잉·믹싱 체험 프로그램에 참여해 직접 음악을 믹싱해보세요. 새로운 창작의 재미를 느낄 수 있어요. (평점 4.5)', rating: 4.5 }
+                ]
+            },
+            도전형: {
+                name: '도전형',
+                activities: [
+                { name: '클라이밍 도전', emoji: '🧗‍♂️', description: '실내 클라이밍으로 새로운 루트를 공략하며 한계를 넘어보세요. 성취감이 짜릿합니다. (평점 4.8)', rating: 4.8 },
+                { name: '무술 클래스', emoji: '🥋', description: '무술이나 자기방어 클래스에서 자신감과 체력을 키워보세요. 실전 기술을 배울 수 있어요. (평점 4.6)', rating: 4.6 },
+                { name: '방탈출', emoji: '🧠', description: '추리 퀘스트 방탈출에서 두뇌를 자극하며 팀워크를 발휘해보세요. 긴장감이 매력적입니다. (평점 4.7)', rating: 4.7 }
+                ]
+            },
+            몰입형: {
+                name: '몰입형',
+                activities: [
+                { name: '명상 리트릿', emoji: '🧘', description: '심화 명상 리트릿에서 일상을 벗어나 깊은 내면을 탐구해보세요. 마음이 맑아집니다. (평점 4.8)', rating: 4.8 },
+                { name: '글쓰기 챌린지', emoji: '🖋️', description: '글쓰기 마라톤이나 블로깅 챌린지에 참여해 몰입의 즐거움을 경험해보세요. 생각이 정리됩니다. (평점 4.6)', rating: 4.6 },
+                { name: '퍼즐 제작', emoji: '🧩', description: '수공예 퍼즐 제작 체험으로 섬세한 작업에 집중하며 성취감을 느껴보세요. (평점 4.5)', rating: 4.5 }
+                ]
+            },
+            유능성: {
+                name: '유능성',
+                activities: [
+                { name: '타겟 스포츠', emoji: '🎯', description: '양궁이나 다트 등 타겟 스포츠로 집중력과 정확도를 겨뤄보세요. 결과가 눈에 보입니다. (평점 4.7)', rating: 4.7 },
+                { name: '해커톤', emoji: '🧪', description: '코딩·통계 해커톤에 참가해 팀과 함께 문제를 해결하고 성과를 측정해보세요. (평점 4.6)', rating: 4.6 },
+                { name: '인증 과정', emoji: '📝', description: '새로운 자격증이나 인증 과정을 체험하며 전문성을 쌓아보세요. (평점 4.5)', rating: 4.5 }
+                ]
+            },
+            성장형: {
+                name: '성장형',
+                activities: [
+                { name: '토론 모임', emoji: '🎓', description: '인문학·철학 소모임에서 깊이 있는 대화를 나누며 시야를 넓혀보세요. (평점 4.8)', rating: 4.8 },
+                { name: '목표 워크숍', emoji: '📈', description: '장기 목표 계획 수립 워크숍에 참여해 미래를 구체적으로 설계해보세요. (평점 4.7)', rating: 4.7 },
+                { name: '독서회', emoji: '📖', description: '자가독서회와 회고 노트 작성으로 독서 효과를 극대화해보세요. (평점 4.6)', rating: 4.6 }
+                ]
+            },
+            돌봄형: {
+                name: '돌봄형',
+                activities: [
+                { name: '유기견 봉사', emoji: '🐶', description: '유기견 산책 자원봉사로 따뜻한 교감을 나누고 행복을 느껴보세요. (평점 4.9)', rating: 4.9 },
+                { name: '뜨개질 클래스', emoji: '🧶', description: '할머니와 함께하는 뜨개질 클래스에서 세대 간 교감을 경험해보세요. (평점 4.7)', rating: 4.7 },
+                { name: '요리 봉사', emoji: '🧑‍🍳', description: '아동 요리교실 보조 봉사로 아이들과 함께 요리하며 즐거운 시간을 보내보세요. (평점 4.8)', rating: 4.8 }
+                ]
+            },
+            공유형: {
+                name: '공유형',
+                activities: [
+                { name: '도시락 캠페인', emoji: '🍱', description: '도시락 나눔 캠페인에 참여해 나눔의 가치를 경험해보세요. (평점 4.8)', rating: 4.8 },
+                { name: '책 플리마켓', emoji: '📢', description: '책 나눔 플리마켓에서 다양한 책을 교환하며 새로운 인연을 만들어보세요. (평점 4.6)', rating: 4.6 },
+                { name: '팟캐스트 시작', emoji: '🎙️', description: '친구와 함께 팟캐스트를 시작해 목소리로 이야기를 나눠보세요. (평점 4.7)', rating: 4.7 }
+                ]
+            },
+            공감형: {
+                name: '공감형',
+                activities: [
+                { name: '영화 리뷰', emoji: '🎬', description: '감정 기반 영화 리뷰 모임에서 감상을 공유하며 공감대를 형성해보세요. (평점 4.7)', rating: 4.7 },
+                { name: '글쓰기 모임', emoji: '💌', description: '감정 글쓰기 모임에서 마음속 이야기를 글로 표현하고 치유를 경험해보세요. (평점 4.6)', rating: 4.6 },
+                { name: '공연 공유', emoji: '🎭', description: '연극 관람 후 감상 공유 세션에서 다른 사람들과 느낀 점을 나눠보세요. (평점 4.5)', rating: 4.5 }
+                ]
+            },
+            관계성: {
+                name: '관계성',
+                activities: [
+                { name: '보드게임', emoji: '👨‍👩‍👧‍👦', description: '가족·친구와 보드게임 밤을 즐기며 유대감을 키워보세요. (평점 4.8)', rating: 4.8 },
+                { name: '댄스 클래스', emoji: '💃', description: '커플 또는 듀오 댄스 클래스로 함께 춤추며 즐거운 추억을 만들어보세요. (평점 4.7)', rating: 4.7 },
+                { name: '관계 회복', emoji: '🧑‍🤝‍🧑', description: '관계 회복 워크숍에서 소중한 사람과 마음을 다시 확인해보세요. (평점 4.6)', rating: 4.6 }
+                ]
+            },
+            연결형: {
+                name: '연결형',
+                activities: [
+                { name: '네트워킹', emoji: '🍻', description: '소셜 살롱·네트워킹 모임에서 새로운 사람들과 유쾌한 대화를 나눠보세요. (평점 4.7)', rating: 4.7 },
+                { name: '이벤트 기획', emoji: '🫶', description: '친구 생일 기획으로 특별한 순간을 준비하며 즐거움을 느껴보세요. (평점 4.6)', rating: 4.6 },
+                { name: '북클럽', emoji: '📚', description: '북토크나 북클럽에 참여해 책을 매개로 새로운 인연을 만들어보세요. (평점 4.5)', rating: 4.5 }
+                ]
+            },
+            사회형: {
+                name: '사회형',
+                activities: [
+                { name: '축제 참여', emoji: '🎈', description: '지역 축제나 서포터즈 활동에 참여해 지역 사회와 함께 즐거움을 나눠보세요. (평점 4.8)', rating: 4.8 },
+                { name: '댄스파티', emoji: '🎤', description: '노래방 모임이나 댄스파티에서 신나게 노래하고 춤추며 스트레스를 날려보세요. (평점 4.7)', rating: 4.7 },
+                { name: '플리마켓 참여', emoji: '🎪', description: '커뮤니티 마켓·플리마켓 출전에 참가해 직접 만든 물건을 선보여보세요. (평점 4.6)', rating: 4.6 }
+                ]
+            }
+        };
+
+        // 초기화
+        function init() {
+            generateActivities();
+            updateCalendar();
+            updateDatePicker();
+        }
+
+        // 활동 생성
+        function generateActivities() {
+            // localStorage에서 Maintype 가져오기
+            let mainType = null;
+            try {
+                const saved = JSON.parse(localStorage.getItem('selfAwarenessSurvey'));
+                mainType = saved?.userInfo?.mainType;
+            } catch (e) {}
+
+            // mainType이 여러개면 첫 번째만 사용, 공백 제거
+            if (typeof mainType === "string" && mainType.includes("+")) {
+                mainType = mainType.split("+")[0].trim();
+            }
+            mainType = (mainType || "").replace(/\s/g, "");
+
+            // activityTypes에서 해당 유형 찾기 (공백 없는 키로)
+            let foundKey = Object.keys(activityTypes).find(k => k.replace(/\s/g, "") === mainType);
+
+            const today = new Date();
+            const endDate = new Date(today);
+            endDate.setMonth(endDate.getMonth() + 3); // 3개월 후까지
+
+            for (let date = new Date(today); date <= endDate; date.setDate(date.getDate() + 1)) {
+                const day = date.getDay();
+                // 평일(월~금)은 건너뛰기
+                if (day !== 0 && day !== 6) continue;
+
+                // 주말이라도 50% 확률로만 추천
+                if (Math.random() > 0.7) continue;
+
+                const dateKey = formatDateKey(date);
+                activities[dateKey] = [];
+
+                // mainType 추천이 있으면 그걸로, 없으면 랜덤
+                let activity = null;
+                if (foundKey && activityTypes[foundKey] && activityTypes[foundKey].activities.length > 0) {
+                    const arr = activityTypes[foundKey].activities;
+                    activity = arr[Math.floor(Math.random() * arr.length)];
+                } else {
+                    // 기존 랜덤 방식 fallback
+                    const typeKeys = Object.keys(activityTypes);
+                    const randomType = typeKeys[Math.floor(Math.random() * typeKeys.length)];
+                    const choices = activityTypes[randomType].activities;
+                    activity = choices[Math.floor(Math.random() * choices.length)];
+                }
+
+                activities[dateKey].push({
+                    ...activity,
+                    type: foundKey || "랜덤",
+                    typeName: (foundKey && activityTypes[foundKey]?.name) || "추천 활동"
+                });
+            }
+        }
+
+        // 날짜 키 형식 생성
+        function formatDateKey(date) {
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        }
+
+        // 캘린더 업데이트
+        function updateCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            document.getElementById('monthYear').textContent = `${year}년 ${month + 1}월`;
+            
+            const calendarBody = document.getElementById('calendarBody');
+            calendarBody.innerHTML = '';
+
+            // 월의 첫 날과 마지막 날
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+            // 42일 (6주) 생성
+            for (let i = 0; i < 42; i++) {
+                const cellDate = new Date(startDate);
+                cellDate.setDate(startDate.getDate() + i);
+                
+                const dayCell = createDayCell(cellDate, month);
+                calendarBody.appendChild(dayCell);
+            }
+        }
+
+        // 날짜 셀 생성
+        function createDayCell(date, currentMonth) {
+            const cell = document.createElement('div');
+            cell.className = 'day-cell';
+            
+            const today = new Date();
+            const isToday = date.toDateString() === today.toDateString();
+            const isCurrentMonth = date.getMonth() === currentMonth;
+            
+            if (!isCurrentMonth) {
+                cell.classList.add('other-month');
+            }
+            
+            if (isToday) {
+                cell.classList.add('today');
+            }
+
+            const dayNumber = document.createElement('div');
+            dayNumber.className = 'day-number';
+            dayNumber.textContent = date.getDate();
+            cell.appendChild(dayNumber);
+
+            // 활동 추가
+            const dateKey = formatDateKey(date);
+            if (activities[dateKey]) {
+                activities[dateKey].forEach(activity => {
+                    const activityItem = document.createElement('div');
+                    activityItem.className = 'activity-item';
+                    activityItem.innerHTML = `
+                        <span class="activity-emoji">${activity.emoji}</span>
+                        <span class="activity-name">${activity.name}</span>
+                        <span class="activity-rating">⭐${activity.rating}</span>
+                    `;
+                    activityItem.onclick = (e) => {
+                        e.stopPropagation();
+                        showModal(date, activities[dateKey]);
+                    };
+                    cell.appendChild(activityItem);
+                });
+            }
+
+            return cell;
+        }
+
+        // 모달 표시
+        function showModal(date, dayActivities) {
+            const modal = document.getElementById('modal');
+            const modalContent = document.getElementById('modalContent');
+            
+            const dateStr = date.toLocaleDateString('ko-KR', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                weekday: 'long'
+            });
+
+            let content = `<h3>📅 ${dateStr}</h3>`;
+            
+            if (dayActivities && dayActivities.length > 0) {
+                dayActivities.forEach(activity => {
+                    content += `
+                        <div class="modal-activity">
+                            <h4>
+                                <span>${activity.emoji}</span>
+                                <span>${activity.name}</span>
+                                <span class="activity-rating">⭐${activity.rating}</span>
+                            </h4>
+                            <p><strong>카테고리:</strong> ${activity.typeName}</p>
+                            <p>${activity.description}</p>
+                        </div>
+                    `;
+                });
+            } else {
+                content += '<p>오늘은 추천 활동이 없습니다. 자유롭게 시간을 보내세요! 😊</p>';
+            }
+
+            modalContent.innerHTML = content;
+            modal.style.display = 'flex';
+        }
+
+        // 모달 닫기
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        // 뷰 전환
+        function switchView(view) {
+            currentView = view;
+            const calendar = document.getElementById('calendar');
+            const buttons = document.querySelectorAll('.view-toggle button');
+            
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (view === 'week') {
+                calendar.classList.add('week-view');
+            } else {
+                calendar.classList.remove('week-view');
+            }
+        }
+
+        // 이전 달
+        function previousMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            updateCalendar();
+            updateDatePicker();
+        }
+
+        // 다음 달
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            updateCalendar();
+            updateDatePicker();
+        }
+
+        // 오늘로 이동
+        function goToToday() {
+            currentDate = new Date();
+            updateCalendar();
+            updateDatePicker();
+        }
+
+        // 날짜 선택기 업데이트
+        function updateDatePicker() {
+            const datePicker = document.getElementById('datePicker');
+            datePicker.value = currentDate.toISOString().split('T')[0];
+        }
+
+        // 선택한 날짜로 이동
+        function goToDate() {
+            const datePicker = document.getElementById('datePicker');
+            currentDate = new Date(datePicker.value);
+            updateCalendar();
+        }
+
+        // 모달 외부 클릭 시 닫기
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        // 홈 버튼 클릭 시 홈화면으로 이동
+        document.addEventListener('DOMContentLoaded', function() {
+            const homeBtn = document.getElementById('homeBtn');
+            if (homeBtn) {
+                homeBtn.onclick = function() {
+                    location.href = 'home_Section.html';
+                };
+            }
+        });
+
+        // 초기화 실행
+        init();
+    </script>
+</body>
+</html>

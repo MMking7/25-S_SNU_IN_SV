@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>즐거움을 찾으러 가볼까요?</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Noto Sans KR', sans-serif;
+      background: linear-gradient(135deg, #FDF8F4, #E8E2F7);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      font-size: 20px; /* PC 기준 크게 */
+    }
+
+    .container {
+      text-align: center;
+      max-width: 560px;
+      padding: 2.5rem 2rem;
+      color: #333;
+    }
+
+    .emoji {
+      font-size: 64px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    h1 {
+      font-size: 38px;
+      font-weight: 700;
+      color: #8C6CC3;
+      margin: 32px 0 18px;
+    }
+
+    p {
+      font-size: 22px;
+      color: #555;
+      margin-bottom: 48px;
+      line-height: 1.7;
+    }
+
+    .start-button {
+      background-color: #8C6CC3;
+      color: white;
+      border: none;
+      padding: 18px 44px;
+      font-size: 22px;
+      font-weight: 600;
+      border-radius: 32px;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      transition: transform 0.2s ease;
+      position: relative;
+      z-index: 10;
+    }
+
+    .start-button:hover {
+      transform: translateY(-3px);
+      background-color: #7a5bb8;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .floating-icon {
+      position: fixed;
+      font-size: 44px;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.7;
+      animation: float-bubble 6s infinite ease-in-out;
+    }
+    @keyframes float-bubble {
+      0% {
+        transform: translateY(0) scale(1) rotate(0deg);
+        opacity: 0.7;
+      }
+      50% {
+        transform: translateY(-40px) scale(1.15) rotate(10deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(0) scale(1) rotate(-10deg);
+        opacity: 0.7;
+      }
+    }
+
+    .pineu-logo {
+      width: 90px;
+      height: 90px;
+      margin: 0 auto 28px auto;
+      border-radius: 18px;
+      box-shadow: 0 2px 8px rgba(140,108,195,0.07);
+      background: #fff;
+      position: relative;
+      z-index: 1000;
+    }
+    .floating-logo {
+      animation: float 3s ease-in-out infinite;
+    }
+
+    /* 모바일 대응 미디어쿼리 */
+    @media (max-width: 600px) {
+      body {
+        font-size: 15px;
+      }
+      .container {
+        max-width: 98vw;
+        padding: 1.2rem 0.5rem;
+      }
+      .pineu-logo {
+        width: 56px;
+        height: 56px;
+        margin-bottom: 16px;
+      }
+      h1 {
+        font-size: 22px;
+        margin: 18px 0 10px;
+      }
+      p {
+        font-size: 14px;
+        margin-bottom: 28px;
+      }
+      .start-button {
+        font-size: 15px;
+        padding: 12px 22px;
+        border-radius: 22px;
+      }
+      .emoji {
+        font-size: 36px;
+      }
+      .floating-icon {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 파인유 로고를 풍선 대신 넣고, 애니메이션 클래스 적용 -->
+    <img src="pineu_logo.png" alt="파인유 로고" class="pineu-logo floating-logo" />
+    <!-- <div class="emoji">🎈</div> -->
+    <h1>즐거움을 찾으러 가볼까요?</h1>
+    <p>당신만의 즐거움 유형을 알아보고<br>더 나다운 순간을 만나보세요.</p>
+    <button class="start-button" onclick="goStart()">시작하기</button>
+  </div>
+
+  <script>
+    function goStart() {
+      // 회원가입 정보가 있으면 홈(메인)으로, 없으면 회원가입 페이지로 이동
+      const info = localStorage.getItem('selfAwarenessSurvey');
+      if (info) {
+        window.location.href = 'home_Section.html'; // 홈(메인) 페이지
+      } else {
+        window.location.href = 'signup.html'; // 회원가입 페이지로 이동
+      }
+    }
+
+    // 더 다양한 취미/감정/활동 이모지로 확장
+    const hobbyIcons = [
+      "🎮", "🎵", "📚", "🎬", "🎨", "⚽", "🍳", "🎧", "🧩", "🚴‍♂️",
+      "🏄‍♂️", "🏕️", "🧘‍♀️", "🎤", "🎲", "🖼️", "🛹", "🏸", "🎯", "🪁",
+      "🛼", "🎻", "🥁", "🎹", "🪕", "🧗‍♂️", "🏊‍♀️", "🚣‍♂️", "🏂", "🪂",
+      "🧩", "🪄", "🧵", "🪡", "🧶", "🪢", "🧺", "🧴", "🧸", "🪆"
+    ];
+    const bubbleCount = Math.min(15, hobbyIcons.length); // 최대 15개, 중복 없이
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const container = document.querySelector('.container');
+      const rect = container.getBoundingClientRect();
+
+      const shuffledIcons = hobbyIcons.slice().sort(() => Math.random() - 0.5);
+      const placed = []; // 이미 배치된 이모지 위치 저장
+
+      for (let i = 0; i < bubbleCount; i++) {
+        const icon = document.createElement('div');
+        icon.className = 'floating-icon';
+        icon.innerText = shuffledIcons[i];
+
+        let left, top, x, y;
+        let tries = 0;
+        let minDist = 60; // 이모지끼리 최소 거리(px)
+        let valid = false;
+
+        do {
+          left = 10 + Math.random() * 80; // %
+          top = 10 + Math.random() * 70;  // %
+          x = window.innerWidth * (left / 100);
+          y = window.innerHeight * (top / 100);
+          tries++;
+
+          // container 영역과 겹치지 않고, 다른 이모지들과도 충분히 떨어져 있는지 확인
+          const notOverlapContainer =
+            x + 32 < rect.left || x > rect.right ||
+            y + 32 < rect.top || y > rect.bottom;
+
+          const notTooClose = placed.every(pos => {
+            const dx = pos.x - x;
+            const dy = pos.y - y;
+            return Math.sqrt(dx * dx + dy * dy) > minDist;
+          });
+
+          if (notOverlapContainer && notTooClose) {
+            valid = true;
+            break;
+          }
+        } while (tries < 40);
+
+        icon.style.left = `${left}%`;
+        icon.style.top = `${top}%`;
+        icon.style.animationDelay = `${Math.random() * 6}s`;
+        icon.style.animationDuration = `${4 + Math.random() * 4}s`;
+        document.body.appendChild(icon);
+        placed.push({ x, y });
+      }
+    });
+  </script>
+</body>
+</html>

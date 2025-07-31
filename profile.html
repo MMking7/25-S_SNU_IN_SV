@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>내 정보 보기</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin:0; padding:0; }
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: #FDF8F4;
+      color: #333;
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    .top-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #E0E0E0;
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto 16px auto;
+      background: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .top-bar h1 {
+      font-size: 22pt;
+      font-weight: 700;
+      color: #333;
+      flex: 1;
+      text-align: center;
+      margin: 0;
+    }
+    .top-bar .icon {
+      font-size: 22px;
+      cursor: pointer;
+      margin-left: 8px;
+    }
+    .back-btn {
+      background: none;
+      border: none;
+      font-size: 32px;
+      color: #8C6CC3;
+      cursor: pointer;
+      margin-right: 10px;
+      padding: 2px 10px;
+      transition: background 0.2s;
+      line-height: 1;
+      font-weight: bold;
+    }
+    .back-btn:hover {
+      background: #f3f0fa;
+    }
+    .info-card {
+      background: white;
+      border-radius: 16px;
+      padding: 32px 24px 24px 24px;
+      margin-top: 32px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+      width: 100%;
+      max-width: 420px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .info-card h2 {
+      font-size: 18pt;
+      margin-bottom: 18px;
+      color: #8C6CC3;
+      text-align: center;
+    }
+    .info-list {
+      list-style: none;
+      margin-top: 12px;
+      width: 100%;
+      padding: 0;
+    }
+    .info-list li {
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+    .info-list li span.label {
+      flex: 0 0 110px;
+      font-weight: 600;
+      color: #555;
+      text-align: right;
+      margin-right: 8px;
+    }
+    .info-list li span.value {
+      flex: 1;
+      color: #333;
+      min-width: 40px;
+      display: inline-block;
+      text-align: left;
+    }
+    .pill {
+      display: inline-block;
+      background: #D9F0E6;
+      color: #333;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-right: 6px;
+      font-size: 13px;
+    }
+    .edit-btn {
+      margin-left: 8px;
+      background: #eee;
+      border: none;
+      border-radius: 8px;
+      padding: 2px 10px;
+      font-size: 13px;
+      color: #555;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .edit-btn:hover {
+      background: #e0e0e0;
+    }
+    @media (max-width: 500px) {
+      .top-bar, .info-card {
+        max-width: 98vw;
+        padding-left: 4vw;
+        padding-right: 4vw;
+      }
+      .info-card {
+        padding: 24px 4vw 16px 4vw;
+      }
+      .info-list li span.label {
+        flex: 0 0 80px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <button class="back-btn" onclick="goHome()" aria-label="이전으로">⬅️</button>
+    <h1>내 정보</h1>
+    <div class="icon">⚙️</div>
+  </div>
+
+  <div class="info-card">
+    <h2>회원정보</h2>
+    <ul class="info-list">
+      <li>
+        <span class="label">닉네임:</span>
+        <span class="value" id="nickname">—</span>
+        <button class="edit-btn" onclick="editField('nickname')">수정</button>
+      </li>
+      <li>
+        <span class="label">나이:</span>
+        <span class="value" id="age">—</span>
+        <button class="edit-btn" onclick="editField('age')">수정</button>
+      </li>
+      <li>
+        <span class="label">성별:</span>
+        <span class="value" id="gender">—</span>
+        <button class="edit-btn" onclick="editField('gender')">수정</button>
+      </li>
+      <li>
+        <span class="label">직업/활동:</span>
+        <span class="value" id="jobs"></span>
+        <button class="edit-btn" onclick="editField('jobCategories')">수정</button>
+      </li>
+      <li>
+        <span class="label">기타 직업:</span>
+        <span class="value" id="jobDetail">—</span>
+        <button class="edit-btn" onclick="editField('jobDetail')">수정</button>
+      </li>
+      <li>
+        <span class="label">자유시간/주:</span>
+        <span class="value" id="freeTime">—시간</span>
+        <button class="edit-btn" onclick="editField('freeTime')">수정</button>
+      </li>
+    </ul>
+  </div>
+
+  <button 
+    style="margin-top:24px; background:#8C6CC3; color:#fff; border:none; border-radius:10px; padding:12px 28px; font-size:16px; font-weight:600; cursor:pointer; transition:background 0.2s;"
+    onclick="location.href='specify_myself.html'">
+    세부 질문 답변하기
+  </button>
+
+  <script>
+    // 이전(←) 버튼 클릭 시 홈으로 이동
+    function goHome() {
+      window.location.href = "home_Section.html";
+    }
+
+    // 로컬스토리지에서 데이터 불러오기 및 표시
+    const raw = localStorage.getItem('selfAwarenessSurvey');
+    let info = {};
+    if (!raw) {
+      alert('저장된 회원정보가 없습니다.');
+    } else {
+      try {
+        info = JSON.parse(raw);
+        // userInfo가 있으면 info를 userInfo로 치환
+        info = info.userInfo || info;
+
+        document.getElementById('nickname').textContent = info.nickname || info.name || '—';
+        document.getElementById('age').textContent = info.age || '—';
+        document.getElementById('gender').textContent = info.gender || '—';
+        // jobCategories 배열을 pill 형태로
+        const jobsContainer = document.getElementById('jobs');
+        jobsContainer.innerHTML = '';
+        if (Array.isArray(info.jobCategories)) {
+          info.jobCategories.forEach(job => {
+            const span = document.createElement('span');
+            span.className = 'pill';
+            span.textContent = job;
+            jobsContainer.appendChild(span);
+          });
+        } else {
+          jobsContainer.textContent = '—';
+        }
+        document.getElementById('jobDetail').textContent = info.jobDetail || '—';
+        document.getElementById('freeTime').textContent = (info.freeTime ? info.freeTime + '시간' : '—');
+      } catch(e) {
+        console.error(e);
+        alert('회원정보 파싱 중 오류가 발생했습니다.');
+      }
+    }
+
+    // 필드 수정 함수
+    function editField(field) {
+      let current = '';
+      let label = '';
+      switch(field) {
+        case 'nickname':
+          current = info.nickname || info.name || '';
+          label = '닉네임';
+          break;
+        case 'age':
+          current = info.age || '';
+          label = '나이';
+          break;
+        case 'gender':
+          current = info.gender || '';
+          label = '성별';
+          break;
+        case 'jobCategories':
+          current = Array.isArray(info.jobCategories) ? info.jobCategories.join(', ') : '';
+          label = '직업/활동 (쉼표로 구분)';
+          break;
+        case 'jobDetail':
+          current = info.jobDetail || '';
+          label = '기타 직업';
+          break;
+        case 'freeTime':
+          current = info.freeTime || '';
+          label = '주간 자유시간(숫자만)';
+          break;
+      }
+      const input = prompt(`${label}을(를) 입력하세요:`, current);
+      if (input !== null) {
+        if (field === 'jobCategories') {
+          info.jobCategories = input.split(',').map(s => s.trim()).filter(Boolean);
+        } else if (field === 'nickname') {
+          info.nickname = input.trim();
+        } else if (field === 'freeTime') {
+          info.freeTime = input.replace(/[^0-9]/g, '');
+        } else {
+          info[field] = input.trim();
+        }
+        // 저장 및 새로고침
+        localStorage.setItem('selfAwarenessSurvey', JSON.stringify(info));
+        location.reload();
+      }
+    }
+  </script>
+</body>
+</html>
